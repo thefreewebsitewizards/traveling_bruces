@@ -336,8 +336,10 @@ if ('IntersectionObserver' in window) {
 function toggleAdminPanel() {
     const adminPanel = document.getElementById('admin-panel');
     if (adminPanel.style.display === 'none' || adminPanel.style.display === '') {
-        // Show password modal before showing admin panel
-        showPasswordModal();
+        // Only show password modal if in admin mode
+        if (checkAdminAccess()) {
+            showPasswordModal();
+        }
     } else {
         adminPanel.style.display = 'none';
     }
@@ -373,13 +375,16 @@ function checkPassword() {
         const adminPanel = document.getElementById('admin-panel');
         adminPanel.style.display = 'flex';
     } else {
-        alert('Incorrect password. Access denied.');
+        // Only show error if in admin mode
+        if (checkAdminAccess()) {
+            alert('Incorrect password. Access denied.');
+        }
         document.getElementById('admin-password').value = '';
         document.getElementById('admin-password').focus();
     }
 }
 
-function updateStats() {
+function updateStats(showAlert = true) {
     // Update Journey Stats
     const statesVisited = document.getElementById('states-visited').value;
     const journeyStarted = document.getElementById('journey-started').value;
@@ -470,7 +475,10 @@ function updateStats() {
     };
     localStorage.setItem('websiteStats', JSON.stringify(statsData));
     
-    alert('Statistics updated successfully!');
+    // Only show success message if in admin mode and showAlert is true
+    if (checkAdminAccess() && showAlert) {
+        alert('Statistics updated successfully!');
+    }
     toggleAdminPanel();
 }
 
@@ -493,8 +501,8 @@ function loadSavedStats() {
         document.getElementById('age-25-34').value = stats.age25_34 || '40';
         document.getElementById('age-35-44').value = stats.age35_44 || '35';
         
-        // Apply the saved stats
-        updateStats();
+        // Apply the saved stats without showing alert
+        updateStats(false);
     }
 }
 
@@ -502,7 +510,9 @@ function checkAdminAccess() {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('admin') === 'true') {
         document.getElementById('admin-toggle').style.display = 'block';
+        return true;
     }
+    return false;
 }
 
 // Initialize slideshow
